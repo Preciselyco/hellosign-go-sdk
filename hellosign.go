@@ -465,6 +465,9 @@ func (m *Client) request(method string, path string, params *bytes.Buffer, w mul
 	if response.StatusCode >= 400 {
 		e := &ErrorResponse{}
 		json.NewDecoder(response.Body).Decode(e)
+		if e.Error == nil {
+			return response, errors.New("failed to parse response error")
+		}
 		msg := fmt.Sprintf("%s: %s", e.Error.Name, e.Error.Message)
 		return response, errors.New(msg)
 	}
