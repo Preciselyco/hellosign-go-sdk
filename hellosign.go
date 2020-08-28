@@ -417,6 +417,11 @@ func (m *Client) RemoveSignatureRequestAccess(ctx context.Context, signatureRequ
 	return response, err
 }
 
+// DeleteSignatureRequest - Remove access to a completed SignatureRequest. This action is not reversible.
+func (m *Client) DeleteSignatureRequest(signatureRequestID string) (*http.Response, error) {
+	return m.nakedPost(fmt.Sprintf("signature_request/remove/%s", signatureRequestID))
+}
+
 // Private Methods
 
 func (m *Client) marshalMultipartRequest(
