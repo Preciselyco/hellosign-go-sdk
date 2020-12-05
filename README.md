@@ -1,4 +1,5 @@
 [![build status](https://travis-ci.org/jheth/hellosign-go-sdk.svg?branch=master)](https://travis-ci.org/jheth/hellosign-go-sdk)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPreciselyco%2Fhellosign-go-sdk.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPreciselyco%2Fhellosign-go-sdk?ref=badge_shield)
 
 # HelloSign Go SDK
 A Go wrapper for the HelloSign API.
@@ -224,3 +225,7 @@ res, err := client.CancelSignatureRequest("5c002b65dfefab79795a521bef312c45914cc
 // res is *http.Response
 res.StatusCode => 200
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPreciselyco%2Fhellosign-go-sdk.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPreciselyco%2Fhellosign-go-sdk?ref=badge_large)
