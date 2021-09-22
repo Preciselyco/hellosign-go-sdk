@@ -43,8 +43,8 @@ type EmbeddedRequest struct {
 	UseTextTags      bool              `form_field:"use_text_tags"`
 	HideTextTags     bool              `form_field:"hide_text_tags"`
 	Metadata         map[string]string `form_field:"metadata"`
-	// AllowDecline          int                   `form_field:"allow_decline"`
-	// AllowReassign         int                   `form_field:"allow_reassign"`
+	AllowDecline          bool                  `form_field:"allow_decline"`
+	AllowReassign         bool                  `form_field:"allow_reassign"`
 	FormFieldsPerDocument [][]DocumentFormField `form_field:"form_fields_per_document"`
 	// FieldOptions map[string]string `form_field:"field_options"``
 }
