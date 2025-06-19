@@ -169,7 +169,6 @@ type SignURLResponse struct {
 // CreateEmbeddedSignatureRequest creates a new embedded signature
 func (m *Client) CreateEmbeddedSignatureRequest(
 	embeddedRequest EmbeddedRequest) (*SignatureRequest, error) {
-
 	params, writer, err := m.marshalMultipartRequest(embeddedRequest)
 	if err != nil {
 		return nil, err
@@ -211,31 +210,46 @@ func (m *Client) GetEmbeddedSignURL(signatureRequestID string) (*SignURLResponse
 }
 
 func (m *Client) SaveFile(signatureRequestID, fileType, destFilePath string) (os.FileInfo, error) {
-	bytes, err := m.GetFiles(signatureRequestID, fileType)
+	resp, err := m.GetFiles(signatureRequestID, fileType)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
 
 	out, err := os.Create(destFilePath)
 	if err != nil {
 		return nil, err
 	}
-	out.Write(bytes)
-	out.Close()
+	defer out.Close()
 
-	info, err := os.Stat(destFilePath)
+	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	return info, nil
+
+	return os.Stat(destFilePath)
 }
 
 // GetPDF - Obtain a copy of the current pdf specified by the signature_request_id parameter.
 func (m *Client) GetPDF(signatureRequestID string) ([]byte, error) {
-	return m.GetFiles(signatureRequestID, "pdf")
+	resp, err := m.GetFiles(signatureRequestID, "pdf")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
+}
+
+type FileResponse struct {
+	Length int64 // Length of file in bytes, iff reported by server `Content-Length` header. Otherwise -1
+	Body   io.ReadCloser
 }
 
 // GetFiles - Obtain a copy of the current documents specified by the signature_request_id parameter.
 // signatureRequestID - The id of the SignatureRequest to retrieve.
 // fileType - Set to "pdf" for a single merged document or "zip" for a collection of individual documents.
-func (m *Client) GetFiles(signatureRequestID, fileType string) ([]byte, error) {
+// It is up to the caller to close the response Body.
+func (m *Client) GetFiles(signatureRequestID, fileType string) (*FileResponse, error) {
 	path := fmt.Sprintf("signature_request/files/%s", signatureRequestID)
 
 	var params bytes.Buffer
@@ -258,14 +272,16 @@ func (m *Client) GetFiles(signatureRequestID, fileType string) ([]byte, error) {
 		return nil, err
 	}
 
-	defer response.Body.Close()
-
-	data, err := ioutil.ReadAll(response.Body)
+	lengthStr := response.Header.Get("Content-Length")
+	length, err := strconv.ParseInt(lengthStr, 10, 64)
 	if err != nil {
-		return nil, err
+		length = -1
 	}
 
-	return data, nil
+	return &FileResponse{
+		Length: length,
+		Body:   response.Body,
+	}, nil
 }
 
 // ListSignatureRequests - Lists the SignatureRequests (both inbound and outbound) that you have access to.
@@ -335,7 +351,6 @@ func (m *Client) DeleteSignatureRequest(signatureRequestID string) (*http.Respon
 
 func (m *Client) marshalMultipartRequest(
 	embRequest EmbeddedRequest) (*bytes.Buffer, *multipart.Writer, error) {
-
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
